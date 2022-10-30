@@ -2,6 +2,10 @@ name: 'setup-renv'
 description: 'Action to setup renv and install R dependencies in the lockfile'
 author: 'Jim Hester'
 inputs:
+  subdir:
+    description: 'Subdirectory to use with `renv::restore()`'
+    required: false
+    default: '.'
   profile:
     description: 'The renv profile that should be activated. Forwarded to `renv::activate()`. Must be an R expression. Note that it often needs to be quoted in YAML, see the README for details.'
   cache-version:
@@ -18,8 +22,8 @@ runs:
 
       - name: Install and activate renv
         run: |
-          install.packages("renv")
-          renv::activate(profile = ${{ inputs.profile }})
+          install.packages(c("renv", "withr"))
+          withr::with_dir("${{ inputs.subdir }}", renv::activate(profile = ${{ inputs.profile }}))
         shell: Rscript {0}
 
       - name: Get R and OS version
@@ -37,7 +41,7 @@ runs:
           restore-keys: ${{ steps.get-version.outputs.os-version }}-${{ steps.get-version.outputs.r-version }}-${{inputs.cache-version }}-
 
       - name: Install renv dependencies
-        run: renv::restore()
+        run: withr::with_dir("${{ inputs.subdir }}", renv::restore())
         shell: Rscript {0}
 
       - name: Don't use tar 1.30 from Rtools35 to store the cache
