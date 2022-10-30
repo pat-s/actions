@@ -22,7 +22,7 @@ runs:
 
       - name: Install and activate renv
         run: |
-          install.packages(c("renv", "withr"))
+          install.packages(c("renv", "withr"), repos = "cloud.r-project.org")
           withr::with_dir("${{ inputs.subdir }}", renv::activate(profile = ${{ inputs.profile }}))
         shell: Rscript {0}
 
